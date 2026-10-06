@@ -33,7 +33,7 @@ void return_connection(int sockfd) {                        // Функция п
 
 void settings_server_udp(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на udp 
     server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr->sin_addr.s_addr = INADDR_ANY;   // 0.0.0.0
     server_addr->sin_port = htons(port);
 }
 void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для клиента на udp 
@@ -71,7 +71,7 @@ void send_udp_int(int sockfd, struct sockaddr_in* client_addr, int result) {
 
 void settings_server(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на TCP
     server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr->sin_addr.s_addr = INADDR_ANY;
     server_addr->sin_port = htons(port);
 }
 
