@@ -33,14 +33,15 @@ void return_connection(int sockfd) {                        // Функция п
 
 void settings_server_udp(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на udp 
     server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = INADDR_ANY;   // 0.0.0.0
+    server_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
     server_addr->sin_port = htons(port);
 }
-void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для клиента на udp 
+void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip) {  // Функция настроек для клиента на udp 
     server_addr->sin_family = AF_INET; 
     server_addr->sin_port = htons(port); 
-    if (inet_pton(AF_INET, "127.0.0.1", &server_addr->sin_addr) <= 0) {
-        std::cerr << "Invalid address/ Address not supported" << std::endl;
+    if (ip == nullptr || ip[0] == '\0') ip = "127.0.0.1";
+    if (inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0) {
+        std::cerr << "Invalid address/ Address not supported: " << ip << std::endl;
     }
 }
 
@@ -71,7 +72,7 @@ void send_udp_int(int sockfd, struct sockaddr_in* client_addr, int result) {
 
 void settings_server(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на TCP
     server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = INADDR_ANY;
+    server_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
     server_addr->sin_port = htons(port);
 }
 
@@ -101,11 +102,12 @@ int accept_connection(int sockfd, struct sockaddr_in* client_addr) {            
 
 // tcp client settings
 
-void settings_client(int sockfd, struct sockaddr_in* server_addr, int port) {               // Функция для настроек для клиента на TCP
+void settings_client(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip) {  // Функция для настроек для клиента на TCP
     server_addr->sin_family = AF_INET; 
     server_addr->sin_port = htons(port); 
-    if (inet_pton(AF_INET, "127.0.0.1", &server_addr->sin_addr) <= 0) {
-        std::cerr << "Invalid address/ Address not supported" << std::endl;
+    if (ip == nullptr || ip[0] == '\0') ip = "127.0.0.1";
+    if (inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0) {
+        std::cerr << "Invalid address/ Address not supported: " << ip << std::endl;
     }
 }
 

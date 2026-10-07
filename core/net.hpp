@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sys/socket.h>
-#include <netinet/in.h>
+
+
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
@@ -18,7 +18,7 @@ int create_socket(char* type);
 void return_connection(int sockfd);
 
 void settings_server_udp(int sockfd, struct sockaddr_in* server_addr, int port);
-void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port);
+void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip = nullptr);
 void bind_socket_udp(int sockfd, struct sockaddr_in* server_addr);
 void send_udp_c(int sockfd, struct sockaddr_in* client_addr, const char* message);
 void receive_udp_c(int sockfd, char* buffer, size_t buffer_size, struct sockaddr_in* client_addr);
@@ -30,7 +30,7 @@ int bind_socket(int sockfd, struct sockaddr_in* server_addr);
 void listen_socket(int sockfd);
 int accept_connection(int sockfd, struct sockaddr_in* client_addr);
 
-void settings_client(int sockfd, struct sockaddr_in* server_addr, int port);
+void settings_client(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip = nullptr);
 int connect_to_server(int sockfd, struct sockaddr_in* server_addr);
 
 void send_int(int client, int result);
