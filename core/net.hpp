@@ -35,7 +35,7 @@ int connect_to_server(int sockfd, struct sockaddr_in* server_addr);
 
 void send_int(int client, int result);
 void send_c(int client, const char* message);
-void receive(int client, int* result);
+void receive_int(int client, int* result);
 void receive_c(int client, char* buffer, size_t buffer_size);
 
 template <typename T>
