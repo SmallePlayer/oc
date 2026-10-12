@@ -68,6 +68,16 @@ void receive_udp_int(int sockfd, int* result, struct sockaddr_in* client_addr) {
 void send_udp_int(int sockfd, struct sockaddr_in* client_addr, int result) {
     sendto(sockfd, &result, sizeof(result), 0, (struct sockaddr*)client_addr, sizeof(*client_addr));
 }
+
+ssize_t send_udp_bytes(int sockfd, struct sockaddr_in* client_addr, const void* data, size_t size) {
+    return sendto(sockfd, data, size, 0, (struct sockaddr*)client_addr, sizeof(*client_addr));
+}
+
+ssize_t receive_udp_bytes(int sockfd, void* buffer, size_t buffer_size, struct sockaddr_in* client_addr) {
+    socklen_t addrlen = sizeof(*client_addr);
+    return recvfrom(sockfd, buffer, buffer_size, 0, (struct sockaddr*)client_addr, &addrlen);
+}
+
 // tcp server settings
 
 void settings_server(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на TCP

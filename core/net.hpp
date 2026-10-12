@@ -25,6 +25,9 @@ void receive_udp_c(int sockfd, char* buffer, size_t buffer_size, struct sockaddr
 void receive_udp_int(int sockfd, int* result, struct sockaddr_in* client_addr);
 void send_udp_int(int sockfd, struct sockaddr_in* client_addr, int result);
 
+ssize_t send_udp_bytes(int sockfd, struct sockaddr_in* client_addr, const void* data, size_t size);
+ssize_t receive_udp_bytes(int sockfd, void* buffer, size_t buffer_size, struct sockaddr_in* client_addr);
+
 void settings_server(int sockfd, struct sockaddr_in* server_addr, int port);
 int bind_socket(int sockfd, struct sockaddr_in* server_addr);
 void listen_socket(int sockfd);
