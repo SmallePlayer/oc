@@ -35,6 +35,7 @@ size_t compress_frame(const cv::Mat& frame, std::vector<uchar>& buffer, int qual
 
 size_t decompress_frame(const std::vector<uchar>& buffer, cv::Mat& frame) {
     frame = cv::imdecode(buffer, cv::IMREAD_COLOR);
+    if (frame.empty()) return 0;
     return frame.total() * frame.elemSize();
 }
 
@@ -43,16 +44,16 @@ void send_frame(int sockfd, struct sockaddr_in* addr, std::vector<uchar>& buffer
     for (size_t i = 0; i < chunks; ++i) {
         size_t offset = i * CHUNK_SIZE;
         size_t size = std::min(CHUNK_SIZE, buffer.size() - offset);
-        send_udp_bytes(sockfd, addr, buffer.data() + offset, size);
+        send_to_bytes(sockfd, addr, buffer.data() + offset, size);
     }
-    send_udp_bytes(sockfd, addr, nullptr, 0);   // 0 байт = конец кадра
+    send_to_bytes(sockfd, addr, nullptr, 0);   // 0 байт = конец кадра
 }
 
 size_t receive_frame(int sockfd, std::vector<uchar>& buffer, struct sockaddr_in* from) {
     buffer.clear();
     unsigned char chunk[CHUNK_SIZE];
     while (true) {
-        ssize_t n = receive_udp_bytes(sockfd, chunk, sizeof(chunk), from);
+        ssize_t n = recv_from_bytes(sockfd, from, chunk, sizeof(chunk));
         if (n < 0) continue;
         if (n == 0) break;                      // 0 байт = конец кадра
         buffer.insert(buffer.end(), chunk, chunk + n);

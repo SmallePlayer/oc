@@ -10,13 +10,13 @@ struct Robot {
 
 
 // int main() {
-//     int sock = create_socket((char*)"udp");
+//     int sock = create_socket("udp");
 //     sockaddr_in addr{};
-//     settings_server_udp(sock, &addr, 8080);
+//     set_server_addr(&addr, 8080);
 //     int i = 0;
-//     while(i < 100){ 
+//     while(i < 100){
 //         int num{i++};
-//         send_udp_int(sock, &addr, num);
+//         send_to_int(sock, &addr, num);
 //         delay_seconds(1);
 //     }
 // }
@@ -29,14 +29,13 @@ int main() {
     robot.y = 2.0;
     robot.angle = 3.14;
 
-    int sock = create_socket((char*)"tcp"); // Создание TCP сокета
+    int sock = create_socket("tcp"); // Создание TCP сокета
     sockaddr_in addr{}; // Создание структуры для хранения адреса сервера
-    settings_server(sock, &addr, 8080); // Настройка адреса сервера (IP и порт)
+    set_server_addr(&addr, 8080); // Настройка адреса сервера (IP и порт)
     bind_socket(sock, &addr); // Привязка сокета к адресу и порту
     listen_socket(sock); // Прослушивание входящих соединений
     sockaddr_in client_addr{}; // Создание структуры для хранения адреса клиента
     int client_sock = accept_connection(sock, &client_addr); // Принятие входящего соединения от клиента
 
     send_struct(client_sock, &robot);
-    //send(client_sock, 42);
 }

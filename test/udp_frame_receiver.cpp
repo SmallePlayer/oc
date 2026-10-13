@@ -14,10 +14,10 @@ double calculate_fps(int64& prev_tick) {
 }
 
 int main() {
-    int sock = create_socket((char*)"udp");
+    int sock = create_socket("udp");
     sockaddr_in addr{};
-    settings_server_udp(sock, &addr, 8080);     // INADDR_ANY:8080
-    bind_socket_udp(sock, &addr);
+    set_server_addr(&addr, 8080);     // INADDR_ANY:8080
+    bind_socket(sock, &addr);
 
     sockaddr_in from{};
     std::vector<uchar> jpeg;
@@ -33,7 +33,7 @@ int main() {
         cv::Mat frame;
         decompress_frame(jpeg, frame);
         if (!frame.empty()) {
-            std::cout << "received " << bytes << " bytes in " << (bytes / 1024.0) << " KiB" << '\n';
+            std::cout << "received " << bytes << " bytes in " << (bytes / 1024.0) << " KiB" << frame.size() <<  '\n';
             cv::imshow("udp frames", frame);
             if (cv::waitKey(1) == 27) break;
         }

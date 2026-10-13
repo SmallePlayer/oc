@@ -13,14 +13,14 @@ struct Robot {
 
 
 // int main() {
-//     int sock = create_socket((char*)"udp");
+//     int sock = create_socket("udp");
 //     sockaddr_in addr{};
-//     settings_client_udp(sock, &addr, 8080);
-//     bind_socket_udp(sock, &addr); //бинд сокета к порту только у клиента 
+//     set_client_addr(&addr, 8080);
+//     bind_socket(sock, &addr); //бинд сокета к порту только у клиента
 
 //     while(true){
 //         int result;
-//         receive_udp_int(sock, &result, &addr);
+//         recv_from_int(sock, &addr, &result);
 //         std::cout << result << '\n';
 //     }
 // }
@@ -30,14 +30,12 @@ struct Robot {
 
 int main() {
     Robot robot;
-    
-    int sock = create_socket((char*)"tcp"); // Создание TCP сокета
+
+    int sock = create_socket("tcp"); // Создание TCP сокета
     sockaddr_in addr{}; // Создание структуры для хранения адреса сервера
-    settings_client(sock, &addr, 8080); // Настройка адреса сервера (IP и порт)
+    set_client_addr(&addr, 8080); // Настройка адреса сервера (IP и порт)
     connect_to_server(sock, &addr); // Подключение к серверу
 
-    // int result;
-    // receive(sock, &result);
-    receive_struct(sock, &robot);
+    recv_struct(sock, &robot);
     std::cout << robot.x << ' ' << robot.y << ' ' << robot.angle << '\n';
 }

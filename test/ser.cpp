@@ -3,13 +3,13 @@ using namespace net;
 
 
 int main() {
-    int sock = create_socket((char*)"udp");
+    int sock = create_socket("udp");
     sockaddr_in addr{};
-    settings_server_udp(sock, &addr, 8080);
+    set_server_addr(&addr, 8080);
     int i = 0;
-    while(i < 100){ 
+    while(i < 100){
         int num{i++};
-        send_udp_int(sock, &addr, num);
+        send_to_int(sock, &addr, num);
         delay_seconds(1);
     }
 }
@@ -17,13 +17,13 @@ int main() {
 
 
 // int main() {
-//     int sock = create_socket((char*)"tcp");
+//     int sock = create_socket("tcp");
 //     sockaddr_in addr{};
-//     settings_server(sock, &addr, 8080);
+//     set_server_addr(&addr, 8080);
 //     bind_socket(sock, &addr);
 //     listen_socket(sock);
 //     sockaddr_in client_addr{};
 //     int client_sock = accept_connection(sock, &client_addr);
 
-//     send(client_sock, 42);
+//     send_int(client_sock, 42);
 // }

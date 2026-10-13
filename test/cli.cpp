@@ -4,14 +4,14 @@ using namespace net;
 
 
 int main() {
-    int sock = create_socket((char*)"udp");
+    int sock = create_socket("udp");
     sockaddr_in addr{};
-    settings_client_udp(sock, &addr, 8080);
-    bind_socket_udp(sock, &addr); //бинд сокета к порту только у клиента 
+    set_client_addr(&addr, 8080);
+    bind_socket(sock, &addr); //бинд сокета к порту только у клиента
 
     while(true){
         int result;
-        receive_udp_int(sock, &result, &addr);
+        recv_from_int(sock, &addr, &result);
         std::cout << result << '\n';
     }
 }
@@ -24,12 +24,12 @@ int main() {
 
 
 // int main() {
-//     int sock = create_socket((char*)"tcp");
+//     int sock = create_socket("tcp");
 //     sockaddr_in addr{};
-//     settings_client(sock, &addr, 8080);
+//     set_client_addr(&addr, 8080);
 //     connect_to_server(sock, &addr);
 
 //     int result;
-//     receive(sock, &result);
+//     recv_int(sock, &result);
 //     std::cout << result << '\n';
 // }

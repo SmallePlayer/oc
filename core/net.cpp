@@ -3,14 +3,14 @@
 
 namespace net {
 
-int create_socket(char* type){                  // Функция создание сокета с аргументам по типу сокета
+int create_socket(const char* protocol) {          // create a socket by protocol name
     int sockfd;
-    if (strcmp(type, "tcp") == 0) {
+    if (strcmp(protocol, "tcp") == 0) {
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    } else if (strcmp(type, "udp") == 0) {
+    } else if (strcmp(protocol, "udp") == 0) {
         sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     } else {
-        std::cerr << "Invalid socket type: " << type << std::endl;
+        std::cerr << "Invalid socket type: " << protocol << std::endl;
         return -1;
     }
 
@@ -22,85 +22,55 @@ int create_socket(char* type){                  // Функция создани
     return sockfd;
 }
 
-void return_connection(int sockfd) {                        // Функция параметра для быстрого переподключения      
+int close_socket(int sockfd) {
+    if (close(sockfd) < 0) {
+        std::cerr << "Error closing socket: " << strerror(errno) << std::endl;
+        return -1;
+    }
+    return 0;
+}
+
+void set_reuse_addr(int sockfd) {                  // allow quick rebind after restart
     int opt = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         std::cerr << "Error setting socket options: " << strerror(errno) << std::endl;
     }
 }
 
-// udp server settings
+// address setup
 
-void settings_server_udp(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на udp 
-    server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = INADDR_ANY;
-    server_addr->sin_port = htons(port);
+void set_server_addr(struct sockaddr_in* addr, int port) {
+    addr->sin_family = AF_INET;
+    addr->sin_addr.s_addr = INADDR_ANY;
+    addr->sin_port = htons(port);
 }
-void settings_client_udp(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip) {  // Функция настроек для клиента на udp 
-    server_addr->sin_family = AF_INET; 
-    server_addr->sin_port = htons(port); 
+
+void set_client_addr(struct sockaddr_in* addr, int port, const char* ip) {
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
     if (ip == nullptr || ip[0] == '\0') ip = "127.0.0.1";
-    if (inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0) {
+    if (inet_pton(AF_INET, ip, &addr->sin_addr) <= 0) {
         std::cerr << "Invalid address/ Address not supported: " << ip << std::endl;
     }
 }
 
-void bind_socket_udp(int sockfd, struct sockaddr_in* server_addr) {                     // Функция для подвязки сокета к порту для udp 
-    if (bind(sockfd, (struct sockaddr*)server_addr, sizeof(*server_addr)) < 0) {
-        std::cerr << "Bind failed: " << strerror(errno) << std::endl;
-    }
-}
+// tcp server / client
 
-// udp send
-// отправка и получение данных по udp
-// отправка char* и int
-void send_udp_c(int sockfd, struct sockaddr_in* client_addr, const char* message) {
-    sendto(sockfd, message, strlen(message), 0, (struct sockaddr*)client_addr, sizeof(*client_addr));
-}
-void receive_udp_c(int sockfd, char* buffer, size_t buffer_size, struct sockaddr_in* client_addr) {
-    socklen_t addrlen = sizeof(*client_addr);
-    recvfrom(sockfd, buffer, buffer_size, 0, (struct sockaddr*)client_addr, &addrlen);
-}
-void receive_udp_int(int sockfd, int* result, struct sockaddr_in* client_addr) {
-    socklen_t addrlen = sizeof(*client_addr);
-    recvfrom(sockfd, result, sizeof(*result), 0, (struct sockaddr*)client_addr, &addrlen);
-}
-void send_udp_int(int sockfd, struct sockaddr_in* client_addr, int result) {
-    sendto(sockfd, &result, sizeof(result), 0, (struct sockaddr*)client_addr, sizeof(*client_addr));
-}
-
-ssize_t send_udp_bytes(int sockfd, struct sockaddr_in* client_addr, const void* data, size_t size) {
-    return sendto(sockfd, data, size, 0, (struct sockaddr*)client_addr, sizeof(*client_addr));
-}
-
-ssize_t receive_udp_bytes(int sockfd, void* buffer, size_t buffer_size, struct sockaddr_in* client_addr) {
-    socklen_t addrlen = sizeof(*client_addr);
-    return recvfrom(sockfd, buffer, buffer_size, 0, (struct sockaddr*)client_addr, &addrlen);
-}
-
-// tcp server settings
-
-void settings_server(int sockfd, struct sockaddr_in* server_addr, int port) {       // Функция настроек для сервера на TCP
-    server_addr->sin_family = AF_INET;
-    server_addr->sin_addr.s_addr = INADDR_ANY;
-    server_addr->sin_port = htons(port);
-}
-
-int bind_socket(int sockfd, struct sockaddr_in* server_addr) {                      //Функция для подвязки порта к сокету на TCP
-    if (bind(sockfd, (struct sockaddr*)server_addr, sizeof(*server_addr)) < 0) {
+int bind_socket(int sockfd, struct sockaddr_in* addr) {
+    if (bind(sockfd, (struct sockaddr*)addr, sizeof(*addr)) < 0) {
         std::cerr << "Bind failed: " << strerror(errno) << std::endl;
         return -1;
     }
     return 0;
 }
 
-void listen_socket(int sockfd) {                                                    // Функция для прослушивания порта(настройка для сервера TCP)
+void listen_socket(int sockfd) {
     if (listen(sockfd, 1) < 0) {
         std::cerr << "Listen failed: " << strerror(errno) << std::endl;
     }
 }
 
-int accept_connection(int sockfd, struct sockaddr_in* client_addr) {                //Функция для подключения от клиента к серверу на TCP
+int accept_connection(int sockfd, struct sockaddr_in* client_addr) {
     socklen_t addrlen = sizeof(*client_addr);
     int new_socket = accept(sockfd, (struct sockaddr*)client_addr, &addrlen);
     if (new_socket < 0) {
@@ -110,18 +80,7 @@ int accept_connection(int sockfd, struct sockaddr_in* client_addr) {            
     return new_socket;
 }
 
-// tcp client settings
-
-void settings_client(int sockfd, struct sockaddr_in* server_addr, int port, const char* ip) {  // Функция для настроек для клиента на TCP
-    server_addr->sin_family = AF_INET; 
-    server_addr->sin_port = htons(port); 
-    if (ip == nullptr || ip[0] == '\0') ip = "127.0.0.1";
-    if (inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0) {
-        std::cerr << "Invalid address/ Address not supported: " << ip << std::endl;
-    }
-}
-
-int connect_to_server(int sockfd, struct sockaddr_in* server_addr) {                        // Функция подключения клиента к серверу по порту
+int connect_to_server(int sockfd, struct sockaddr_in* server_addr) {
     if (connect(sockfd, (struct sockaddr*)server_addr, sizeof(*server_addr)) < 0) {
         std::cerr << "Connection failed: " << strerror(errno) << std::endl;
         return -1;
@@ -129,42 +88,73 @@ int connect_to_server(int sockfd, struct sockaddr_in* server_addr) {            
     return 0;
 }
 
-// tcp send 
-// отправка и получение данных по TCP
-void send_int(int client, int result){
-    write(client, &result, sizeof(result));
-}
-void send_c(int client, const char* message){
-    write(client, message, strlen(message));
-}
-void receive_int(int client, int* result){
-    read(client, result, sizeof(*result));
-}
-void receive_c(int client, char* buffer, size_t buffer_size){
-    read(client, buffer, buffer_size);
+// stream data (tcp / connected udp)
+
+void send_int(int sockfd, int value) {
+    write(sockfd, &value, sizeof(value));
 }
 
-void send_bytes(int client, const void* data, size_t size) {
-    write(client, data, size);
+void send_str(int sockfd, const char* message) {
+    write(sockfd, message, strlen(message));
 }
 
+void send_bytes(int sockfd, const void* data, size_t size) {
+    write(sockfd, data, size);
+}
+
+void recv_int(int sockfd, int* result) {
+    read(sockfd, result, sizeof(*result));
+}
+
+void recv_str(int sockfd, char* buffer, size_t buffer_size) {
+    read(sockfd, buffer, buffer_size);
+}
+
+void recv_bytes(int sockfd, void* buffer, size_t buffer_size) {
+    read(sockfd, buffer, buffer_size);
+}
+
+// datagram data (unconnected udp)
+
+void send_to_int(int sockfd, struct sockaddr_in* addr, int value) {
+    sendto(sockfd, &value, sizeof(value), 0, (struct sockaddr*)addr, sizeof(*addr));
+}
+
+void send_to_str(int sockfd, struct sockaddr_in* addr, const char* message) {
+    sendto(sockfd, message, strlen(message), 0, (struct sockaddr*)addr, sizeof(*addr));
+}
+
+ssize_t send_to_bytes(int sockfd, struct sockaddr_in* addr, const void* data, size_t size) {
+    return sendto(sockfd, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
+}
+
+void recv_from_int(int sockfd, struct sockaddr_in* addr, int* result) {
+    socklen_t addrlen = sizeof(*addr);
+    recvfrom(sockfd, result, sizeof(*result), 0, (struct sockaddr*)addr, &addrlen);
+}
+
+void recv_from_str(int sockfd, struct sockaddr_in* addr, char* buffer, size_t buffer_size) {
+    socklen_t addrlen = sizeof(*addr);
+    recvfrom(sockfd, buffer, buffer_size, 0, (struct sockaddr*)addr, &addrlen);
+}
+
+ssize_t recv_from_bytes(int sockfd, struct sockaddr_in* addr, void* buffer, size_t buffer_size) {
+    socklen_t addrlen = sizeof(*addr);
+    return recvfrom(sockfd, buffer, buffer_size, 0, (struct sockaddr*)addr, &addrlen);
+}
 
 // delay
 
-void delay_seconds(int sec)
-{
+void delay_seconds(int sec) {
     std::this_thread::sleep_for(std::chrono::seconds(sec));
 }
 
-void delay_microseconds(int usec)
-{
-    std::this_thread::sleep_for(std::chrono::microseconds(usec));
-}
-
-void delay_milliseconds(int ms)
-{
+void delay_milliseconds(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
+void delay_microseconds(int usec) {
+    std::this_thread::sleep_for(std::chrono::microseconds(usec));
+}
 
 } // namespace net
